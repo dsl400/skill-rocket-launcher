@@ -8,24 +8,24 @@ metadata:
 
 ```lnl
 START:
-  DO    resolve workspace/ and workbench/ relative to the user's project
-  DO    read workspace/target.md, workspace/whiteboard.md and the complete workbench/jurnal.md where present
+  DO    resolve <workspace> as the single laboratory folder in the user's project
+  DO    read <workspace>/target.md, <workspace>/whiteboard.md and the complete <workspace>/jurnal.md where present
   ASK   are the exercise and measurable success criterion defined?
   STOP  ask for the missing target definition IF no
-  DO    preserve existing documents and create missing ones with the agreed target in workspace/target.md
+  DO    preserve existing documents and create missing ones with the agreed target in <workspace>/target.md
   ASK   is another main agent supervising this workbench?
   STOP  report the active owner and leave execution to that agent IF yes
-  ASK   does workbench/jurnal.md contain an [in curs] launch?
+  ASK   does <workspace>/jurnal.md contain an [in curs] launch?
   JUMP  RECOVER IF yes
 DECIDE:
-  ASK   do saved measurements meet workspace/target.md?
+  ASK   do saved measurements meet <workspace>/target.md?
   JUMP  REVIEW IF yes
   ASK   is further work blocked or beyond the user's agreed budget or scope?
   STOP  report the concrete blocker or exhausted budget IF yes
   DO    read relevant launch journals and referenced evidence to determine what is already known
   DO    choose the next hypothesis and attempt using the target, evidence and whiteboard
   DO    allocate the next unused integer n above all existing overview entries and launch directories
-  DO    create workbench/<n>-<description>/jurnal.md with a description of at most 60 characters
+  DO    create <workspace>/<n>-<description>/jurnal.md with a description of at most 60 characters
   DO    record the hypothesis, intended attempt, configuration, command and code references in the launch journal
   DO    append an overview entry as three lines: #<n>, two spaces followed by the hypothesis, two spaces followed by [in curs]
   DO    keep each overview entry within 256 characters including identifier and whitespace, with session references confined to the launch journal
@@ -55,10 +55,10 @@ RECORD:
   DO    reference available main and subagent harness-generated full transcripts, recording any unavailable transcript
   DO    keep each launch journal within 256 lines of at most 80 characters, including collapsed details, and reference larger artifacts separately
   DO    replace [in curs] in the overview with the measured result or interruption while preserving the 256-character entry limit
-  DO    add, adjust or withdraw ideas in workspace/whiteboard.md while preserving history in launch journals and harness transcripts
+  DO    add, adjust or withdraw ideas in <workspace>/whiteboard.md while preserving history in launch journals and harness transcripts
   DO    repeat the flow for successive sequential launches until the target is met, work is blocked, or the agreed budget or scope is exhausted
 REVIEW:
-  CHECK the reported outcome is supported by saved observations against workspace/target.md
+  CHECK the reported outcome is supported by saved observations against <workspace>/target.md
   CHECK each overview entry follows #<n> with indented hypothesis and result, fits 256 characters and identifies exactly one <n>- directory
   CHECK each directory description fits 60 characters and its journal fits 256 lines of 80 characters
   CHECK result records effects and corrections with available evidence and harness transcript references
