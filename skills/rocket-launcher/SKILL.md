@@ -8,7 +8,7 @@ metadata:
 
 ```lnl
 START:
-  DO    use Fable or Astra as principal, with Opus or Sol as subagent according to the harness
+  DO    use the principal chosen by the user, with Opus or Sol as subagent according to the harness
   DO    resolve <workspace> as the single laboratory folder
   DO    read <workspace>/target.md, <workspace>/whiteboard.md and complete <workspace>/jurnal.md where present
   ASK   is the target and success criterion defined?
