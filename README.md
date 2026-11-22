@@ -9,6 +9,9 @@ and deletes rejected ones from the cercetaș's whiteboard.
 Research lives in `research/`, with the same target, whiteboard, and journal
 structure as experiments. Each article has a numbered folder with its details.
 
+The user writes directions for the coordonator in `steer.md`; they take effect
+after the affected current step finishes.
+
 The skill lives in `skills/rocket-launcher/SKILL.md`; its flow uses
 [lnl](https://github.com/dsl400/lnl).
 
@@ -45,6 +48,9 @@ The skill lives in `skills/rocket-launcher/SKILL.md`; its flow uses
   the remaining question with its supporting findings to the worker.
 - **Reuse:** consulting saved findings prevents repeating settled research
   and experiments without a new question or changed conditions.
+- **User steering:** checking user directions between steps allows trajectory
+  changes without interrupting in-flight work or waiting for k steps. Preserving
+  the file and recording applied directions supports recovery without replay.
 - **Trajectory:** checkpoints expose deviations before the next step;
   recorded corrections explain why an attempt changed direction.
 

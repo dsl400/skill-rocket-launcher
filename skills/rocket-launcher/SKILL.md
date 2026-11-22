@@ -20,6 +20,7 @@ Paths below are relative to `<workspace>`:
 
 ```text
 target.md
+steer.md                     user directions for coordonator
 whiteboard.md                 worker directions
 jurnal.md
 1-<experiment>/jurnal.md
@@ -62,6 +63,30 @@ whiteboard. The coordonator consults saved findings when choosing work;
 repeating research or an experiment requires a stated unresolved question
 or changed conditions.
 
+## User steering
+
+The user writes free-form directions in `<workspace>/steer.md`. Create it
+empty if missing; preserve user content. The coordonator reads it at startup,
+while waiting, and after each completed step, before dispatching further work,
+regardless of `k`. Missing or empty content adds no direction.
+
+Apply changed instructions when the affected role's current step finishes;
+leave in-flight steps running. An idle role can receive the direction
+immediately. Route research and experiment changes through the existing
+whiteboards and handoff. If the current attempt no longer fits, close it with
+its partial results before selecting another. Record the applied instruction
+and its effect in the existing journal so recovery can distinguish applied
+instructions from pending ones. Keep the direction in force until the user
+changes it; unchanged text does not trigger repeated actions. The coordonator
+leaves `steer.md` for the user to edit.
+
+Example `steer.md`:
+
+```text
+After the current step, prioritize long inputs. Ask cercetaș to check
+whether other teams measured this case before scheduling more experiments.
+```
+
 ## Handoff checks
 
 | Check | Filler | Direct |
@@ -71,6 +96,7 @@ or changed conditions.
 | Whiteboards carry role assignments. | Everyone follows the shared ideas. | Move the accepted long-input experiment from research/whiteboard.md to whiteboard.md. |
 | Saved work informs the next attempt. | Research the method again. | Reuse article #4; test the input length absent from its results. |
 | Lifecycle actions address the selected role. | Stop the worker after an article. | Close the cercetaș article in research/; the worker continues. |
+| User steering takes effect between steps. | Wait for the next k-step review. | Read steer.md after this step and apply the direction before dispatching another. |
 | Owned resources are cleaned up on exit. | Stop when the budget expires. | Stop both roles, save unfinished work, and release the owned lock. |
 
 ## Flow
@@ -85,7 +111,7 @@ START:
   DO    atomically acquire <workspace>/.launcher-lock with owner/session identity, reclaiming only verified inactive ownership
   ASK   was ownership acquired?
   STOP  report owner and yield IF no
-  DO    create missing documents in both workspaces, preserving content
+  DO    create missing documents in both workspaces, preserving content; create <workspace>/steer.md empty only if missing
   DO    make target and whiteboard self-contained: include required facts and setup; keep historical handovers and other-project references in archives
   DO    use relative filesystem paths with an explicit base directory in workspace documents and commands
   DO    while execution is active, coordonator monitors both subagents/processes for liveness and progress every 15 minutes, independent of k
@@ -95,6 +121,7 @@ START:
 DECIDE:
   ADD   1 to <cycles>
   STOP  run CLEANUP, save and report continuation checkpoint IF <cycles> >= 1000000000
+  DO    read <workspace>/steer.md and reconcile it with applied instructions in journals; apply changes for idle roles and hold changes for active roles until their current step ends
   ASK   do saved measurements meet <workspace>/target.md?
   JUMP  REVIEW IF yes
   ASK   is work globally blocked, budget/scope exhausted, or shutdown requested?
@@ -128,7 +155,7 @@ REVISIT:
   DO    select the existing article folder and mark its overview entry [in curs], preserving prior findings
   JUMP  EXECUTE
 WAIT:
-  DO    monitor both roles until a checkpoint, available work, or shutdown condition; an empty worker whiteboard while research progresses means waiting
+  DO    monitor both roles and steer.md until a checkpoint, steering change, available work, or shutdown condition; an empty worker whiteboard while research progresses means waiting
   JUMP  DECIDE
 RECOVER:
   DO    inspect the selected role journal, transcripts, and effects to classify last step: active, completed, unexecuted, or uncertain
@@ -147,6 +174,9 @@ EXECUTE:
 STEP_1:
   DO    reset selected role steps since last trajectory check to zero
 WORK:
+  DO    read <workspace>/steer.md and apply pending user directions for the selected role before dispatch, recording their effect in its existing journal
+  ASK   does the selected attempt need closing because of user steering?
+  JUMP  RECORD IF yes
   ADD   1 to <total_steps>
   STOP  run CLEANUP, save and report continuation checkpoint IF <total_steps> >= 1000000000
   ASK   is work globally blocked, budget/scope exhausted, or shutdown requested?
@@ -161,6 +191,9 @@ OBSERVE:
 STEP_2:
   DO    selected role reports effects/proposed next action and waits for coordonator direction
   DO    save observed effects and step completion in the selected context before further dispatch
+  DO    read <workspace>/steer.md and apply pending user directions for this role, recording their effect
+  ASK   does the selected attempt need closing because of user steering?
+  JUMP  RECORD IF yes
   ASK   have k steps elapsed for this role, or has its attempt completed/encountered a blocker?
   JUMP  WORK IF no
   DO    coordonator inspects progress, compares evidence to target/hypothesis, and reviews cercetaș findings for whiteboard transfers or rejections
@@ -200,6 +233,7 @@ CHECKS:
   CHECK cercetaș decisions cite article evidence and distinguish research gaps from search limitations
   CHECK worker directions were transferred by coordonator with findings and a testable remaining question
   CHECK rejected directions are removed from the cercetaș whiteboard and saved findings inform further work
+  CHECK steer.md content is preserved and changed user directions were applied after the affected current step, before further dispatch, independent of k
   CHECK each lifecycle action used the selected role context and workspace
   CHECK all exits after lock acquisition stopped both roles and released the owned lock after saving records
   CHECK whiteboard reflects current ideas and history is accessible
