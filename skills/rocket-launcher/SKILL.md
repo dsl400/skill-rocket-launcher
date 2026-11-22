@@ -17,6 +17,8 @@ START:
   ASK   was ownership acquired?
   STOP  report owner and yield IF no
   DO    create missing documents, preserving content
+  DO    make target and whiteboard self-contained: include required facts and setup; keep historical handovers and other-project references in archives
+  DO    use relative filesystem paths with an explicit base directory in workspace documents and commands
   DO    while execution is active, supervisor monitors worker/process liveness and progress every 15 minutes, independent of k
   DO    on suspected stall, inspect logs/state, then guide/stop worker/process, recording evidence before restart
   DO    reconcile numbered directories and overview entries, marking unfinished/orphaned launches [in curs]
@@ -34,6 +36,8 @@ DECIDE:
   DO    allocate n above all existing launch numbers
   DO    create <workspace>/<n>-<description>/jurnal.md (description max 60 chars)
   DO    record hypothesis, attempt, command, config, and code references
+  DO    package each exercise with inputs, ordered steps, configuration, dependencies, expected results or rubric, and reproduction command inside the workspace
+  DO    keep evaluation references separate from inputs visible to the tested system
   DO    append three overview lines: #<n>, indented hypothesis, indented [in curs] (256 chars total, no session references)
   JUMP  EXECUTE
 RECOVER:
@@ -88,6 +92,8 @@ CLEANUP:
   DO    stop remaining worker/processes and save unfinished effects/transcript references with [in curs]
   DO    release owned lock only after execution stopped and records saved
 CHECKS:
+  CHECK a fresh worker can run and evaluate the exercise from workspace artifacts without chat history, archived handovers, or another project
+  CHECK target and whiteboard contain no pointers to archived handovers or other projects; filesystem paths are relative with explicit bases
   CHECK saved measurements support outcome against <workspace>/target.md
   CHECK overview entries follow #<n>, fit 256 chars, and identify one <n>- directory
   CHECK directory descriptions fit 60 chars and journals fit 256 lines of 80 chars

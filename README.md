@@ -9,6 +9,13 @@ The skill lives in `skills/rocket-launcher/SKILL.md`; its flow uses
 
 ## Check rationale
 
+- **Self-contained exercises:** local inputs, steps, dependencies and evaluation
+  criteria let a fresh worker reproduce an attempt from workspace artifacts.
+- **Active context:** target and whiteboard carry the facts needed for execution;
+  historical handovers and other-project references belong in archives.
+- **Relative paths:** explicit base directories keep commands portable.
+- **Evaluation isolation:** withheld references prevent answers from leaking into
+  the system being tested.
 - **Target:** a measurable criterion determines when the loop has succeeded.
 - **Overview:** 256 characters per launch keeps the full history affordable
   to read at the start of each session.
