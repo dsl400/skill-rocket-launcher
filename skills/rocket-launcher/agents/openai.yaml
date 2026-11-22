@@ -1,0 +1,4 @@
+interface:
+  display_name: "Rocket Launcher"
+  short_description: "Run supervised sequential experiments"
+  default_prompt: "Use $rocket-launcher to run the experimental workbench."

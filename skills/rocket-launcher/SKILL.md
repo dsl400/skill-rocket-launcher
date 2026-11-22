@@ -1,5 +1,6 @@
 ---
 name: rocket-launcher
+user-invocable: true
 description: Use when running a sequential experimental workbench with shared target, whiteboard, and launch history.
 metadata:
   source: https://github.com/dsl400/skill-rocket-launcher
