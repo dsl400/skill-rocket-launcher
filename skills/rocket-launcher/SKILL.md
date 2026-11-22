@@ -19,6 +19,8 @@ START:
   DO    create missing documents, preserving existing content
   DO    reconcile numbered directories and overview entries, marking unfinished or orphaned launches [in curs]
 DECIDE:
+  ADD   1 to <launches>
+  STOP  report continuation checkpoint IF <launches> >= 1000000000
   ASK   is there an [in curs] launch in <workspace>/jurnal.md?
   JUMP  RECOVER IF yes
   ASK   do saved measurements meet <workspace>/target.md?
@@ -49,6 +51,8 @@ EXECUTE:
 STEP_1:
   DO    reset steps since the last trajectory check to zero
 WORK:
+  ADD   1 to <total_steps>
+  STOP  report continuation checkpoint IF <total_steps> >= 1000000000
   ADD   1 to <steps>
   DO    journal the intended step before dispatch
   DO    subagent executes one step and records actions and effects
