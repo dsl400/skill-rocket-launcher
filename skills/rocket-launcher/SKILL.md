@@ -19,8 +19,6 @@ START:
   DO    create missing documents, preserving existing content
   DO    reconcile numbered directories and overview entries, marking unfinished or orphaned launches [in curs]
 DECIDE:
-  ADD   1 to <launches>
-  STOP  report continuation after 100 launch decisions IF <launches> >= 101
   ASK   is there an [in curs] launch in <workspace>/jurnal.md?
   JUMP  RECOVER IF yes
   ASK   do saved measurements meet <workspace>/target.md?
@@ -47,18 +45,22 @@ RECOVER:
 EXECUTE:
   DO    use one subagent, reusing worker if resuming
   DO    give subagent target, whiteboard, overview, hypothesis, and evidence
-  DO    assign bounded steps and checkpoints with no further delegation, requiring the worker to wait for direction after each step
+  DO    supervisor sets and records k, the number of worker steps between trajectory checks, with no further delegation
 STEP_1:
+  DO    reset steps since the last trajectory check to zero
+WORK:
   ADD   1 to <steps>
-  STOP  report continuation after 1000 steps IF <steps> >= 1001
   DO    journal the intended step before dispatch
-  DO    subagent executes bounded step, reports actions, effects, and next step
-  JUMP  STEP_2
+  DO    subagent executes one step and records actions and effects
+  ASK   have k steps elapsed, or has the attempt completed or encountered a blocker?
+  JUMP  STEP_2 IF yes
+  JUMP  WORK
 OBSERVE:
   DO    monitor the existing worker/process to its checkpoint or interrupt it if off trajectory, without redispatching its step
 STEP_2:
+  DO    worker reports effects and proposed next action, then waits for supervisor direction
   DO    main agent inspects progress, compares evidence to target/hypothesis
-  DO    continue aligned work, redirect deviations with a specific next step, or interrupt
+  DO    continue aligned work, redirect deviations or interrupt, adjusting k when useful
   DO    journal observed effects, corrections and step completion before dispatching further work
   ASK   is the attempt complete, stopped or blocked?
   JUMP  RECORD IF yes
