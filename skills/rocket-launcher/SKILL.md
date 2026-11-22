@@ -8,17 +8,21 @@ metadata:
 
 ```lnl
 START:
-  DO    use the principal chosen by the user, with Opus or Sol as subagent according to the harness
+  DO    use the user-selected principal and one worker: Opus in Claude Code, Sol in Codex
   DO    resolve <workspace> as the single laboratory folder
   DO    read <workspace>/target.md, <workspace>/whiteboard.md and complete <workspace>/jurnal.md where present
   ASK   is the target and success criterion defined?
   STOP  ask for missing target definition IF no
+  DO    atomically acquire <workspace>/.launcher-lock with owner/session identity before writing, reclaiming only a verified inactive owner
+  ASK   was ownership acquired?
+  STOP  report owner and yield IF no
   DO    create missing documents, preserving existing content
-  ASK   is another agent supervising this workbench?
-  STOP  report owner and yield IF yes
+  DO    reconcile numbered directories and overview entries, marking unfinished or orphaned launches [in curs]
+DECIDE:
+  ADD   1 to <launches>
+  STOP  report continuation after 100 launch decisions IF <launches> >= 101
   ASK   is there an [in curs] launch in <workspace>/jurnal.md?
   JUMP  RECOVER IF yes
-DECIDE:
   ASK   do saved measurements meet <workspace>/target.md?
   JUMP  REVIEW IF yes
   ASK   is work blocked or budget/scope exhausted?
@@ -31,33 +35,51 @@ DECIDE:
   DO    append three overview lines: #<n>, indented hypothesis, indented [in curs] (256 chars total, no session references)
   JUMP  EXECUTE
 RECOVER:
-  DO    inspect interrupted journal, transcripts, and effects
-  DO    check whether previous worker or its processes remain active
-  ASK   is resuming the interrupted attempt justified?
+  DO    inspect journal, transcripts and effects to classify the last step as active, completed, unexecuted or uncertain
+  ASK   is the last step active?
+  JUMP  OBSERVE IF yes
+  ASK   is the last step completed?
+  JUMP  STEP_2 IF yes
+  ASK   is the last step unexecuted and resuming justified?
   JUMP  EXECUTE IF yes
-  DO    stop surviving execution and record partial effects
+  DO    record partial effects and interruption, marking uncertain effects as a blocker
   JUMP  RECORD
 EXECUTE:
   DO    use one subagent, reusing worker if resuming
   DO    give subagent target, whiteboard, overview, hypothesis, and evidence
-  DO    assign bounded steps and checkpoints, without further delegation
+  DO    assign bounded steps and checkpoints with no further delegation, requiring the worker to wait for direction after each step
 STEP_1:
+  ADD   1 to <steps>
+  STOP  report continuation after 1000 steps IF <steps> >= 1001
+  DO    journal the intended step before dispatch
   DO    subagent executes bounded step, reports actions, effects, and next step
-  DO    subagent waits for main agent direction at checkpoint
+  JUMP  STEP_2
+OBSERVE:
+  DO    monitor the existing worker/process to its checkpoint or interrupt it if off trajectory, without redispatching its step
 STEP_2:
   DO    main agent inspects progress, compares evidence to target/hypothesis
-  DO    continue aligned work, redirect deviations, or interrupt
-  DO    confirm worker and its processes stopped before replacement
-  DO    retain corrections and stops in launch journal
-  DO    repeat bounded execution and trajectory check until attempt completes, stops, or blocks
+  DO    continue aligned work, redirect deviations with a specific next step, or interrupt
+  DO    journal observed effects, corrections and step completion before dispatching further work
+  ASK   is the attempt complete, stopped or blocked?
+  JUMP  RECORD IF yes
+  DO    reuse the waiting worker or confirm previous worker/processes stopped before replacement
+  JUMP  STEP_1
 RECORD:
   DO    record effects, measurements, failures and corrections under result in launch journal
   DO    reference full harness transcripts for main/subagent, noting unavailable ones
   DO    keep journals within 256 lines of 80 chars including collapsed details, linking larger artifacts
+  DO    confirm worker and its processes stopped before closing the launch
   DO    update overview: replace [in curs] with result/interruption (max 256 chars)
   DO    add/adjust/withdraw ideas in <workspace>/whiteboard.md
-  DO    repeat sequential launches until target met, blocked, or budget exhausted
+  JUMP  DECIDE
 REVIEW:
+  ASK   does this invocation own the workspace lock?
+  JUMP  CLEANUP IF yes
+  JUMP  CHECKS
+CLEANUP:
+  DO    stop remaining worker/processes and save unfinished effects and transcript references with [in curs]
+  DO    release the owned lock only after execution stopped and records were saved
+CHECKS:
   CHECK saved measurements support the reported outcome against <workspace>/target.md
   CHECK overview entries follow #<n>, fit 256 chars, and identify one <n>- directory
   CHECK directory descriptions fit 60 chars and journals fit 256 lines of 80 chars
