@@ -1,6 +1,6 @@
 ---
 name: rocket-launcher
-description: Use when running a sequential experimental workbench with a shared target, editable whiteboard, and a launch history across agent sessions.
+description: Use when running a sequential experimental workbench with shared target, whiteboard, and launch history.
 metadata:
   source: https://github.com/dsl400/skill-rocket-launcher
   version: 0.1.0
@@ -8,63 +8,62 @@ metadata:
 
 ```lnl
 START:
-  DO    resolve <workspace> as the single laboratory folder in the user's project
-  DO    read <workspace>/target.md, <workspace>/whiteboard.md and the complete <workspace>/jurnal.md where present
-  ASK   are the exercise and measurable success criterion defined?
-  STOP  ask for the missing target definition IF no
-  DO    preserve existing documents and create missing ones with the agreed target in <workspace>/target.md
-  ASK   is another main agent supervising this workbench?
-  STOP  report the active owner and leave execution to that agent IF yes
-  ASK   does <workspace>/jurnal.md contain an [in curs] launch?
+  DO    resolve <workspace> as the single laboratory folder
+  DO    read <workspace>/target.md, <workspace>/whiteboard.md and complete <workspace>/jurnal.md where present
+  ASK   is the target and success criterion defined?
+  STOP  ask for missing target definition IF no
+  DO    create missing documents, preserving existing content
+  ASK   is another agent supervising this workbench?
+  STOP  report owner and yield IF yes
+  ASK   is there an [in curs] launch in <workspace>/jurnal.md?
   JUMP  RECOVER IF yes
 DECIDE:
   ASK   do saved measurements meet <workspace>/target.md?
   JUMP  REVIEW IF yes
-  ASK   is further work blocked or beyond the user's agreed budget or scope?
-  STOP  report the concrete blocker or exhausted budget IF yes
-  DO    read relevant launch journals and referenced evidence to determine what is already known
-  DO    choose the next hypothesis and attempt using the target, evidence and whiteboard
-  DO    allocate the next unused integer n above all existing overview entries and launch directories
-  DO    create <workspace>/<n>-<description>/jurnal.md with a description of at most 60 characters
-  DO    record the hypothesis, intended attempt, configuration, command and code references in the launch journal
-  DO    append an overview entry as three lines: #<n>, two spaces followed by the hypothesis, two spaces followed by [in curs]
-  DO    keep each overview entry within 256 characters including identifier and whitespace, with session references confined to the launch journal
+  ASK   is work blocked or budget/scope exhausted?
+  STOP  report blocker/exhaustion IF yes
+  DO    read journals and evidence to determine knowns
+  DO    choose next hypothesis and attempt
+  DO    allocate n above all existing launch numbers
+  DO    create <workspace>/<n>-<description>/jurnal.md (description max 60 chars)
+  DO    record hypothesis, attempt, command, config and code references
+  DO    append three overview lines: #<n>, indented hypothesis, indented [in curs] (256 chars total, no session references)
   JUMP  EXECUTE
 RECOVER:
-  DO    inspect the interrupted launch journal, available harness transcripts and surviving effects
-  DO    establish whether the previous worker or its processes remain active
+  DO    inspect interrupted journal, transcripts, and effects
+  DO    check whether previous worker or its processes remain active
   ASK   is resuming the interrupted attempt justified?
   JUMP  EXECUTE IF yes
-  DO    stop any surviving execution and record partial effects and interruption
+  DO    stop surviving execution and record partial effects
   JUMP  RECORD
 EXECUTE:
-  DO    use one executing subagent, reusing the existing worker when resuming
-  DO    give the subagent the target, editable whiteboard, complete overview, launch hypothesis and relevant evidence
-  DO    assign bounded steps and checkpoints, with all execution confined to that subagent and no further delegation
+  DO    use one subagent, reusing worker if resuming
+  DO    give subagent target, whiteboard, overview, hypothesis, and evidence
+  DO    assign bounded steps and checkpoints, without further delegation
 STEP_1:
-  DO    have the subagent execute the assigned bounded step and report actions, observed effects and the intended next step
-  DO    have the subagent wait for the main agent's direction at the checkpoint
+  DO    subagent executes bounded step, reports actions, effects, and next step
+  DO    subagent waits for main agent direction at checkpoint
 STEP_2:
-  DO    as the main agent, inspect available progress between checkpoints and compare reported evidence and next actions with the target and launch hypothesis
-  DO    continue aligned work, redirect deviations with a specific next action, or interrupt promptly when continuing would deepen the deviation
-  DO    confirm the worker and its launched processes have stopped before replacing it
-  DO    retain corrections, stops and their observed effects for the launch journal
-  DO    repeat the bounded execution and trajectory check until the attempt completes, is stopped or encounters a blocker
+  DO    main agent inspects progress, compares evidence to target/hypothesis
+  DO    continue aligned work, redirect deviations, or interrupt
+  DO    confirm worker and its processes stopped before replacement
+  DO    retain corrections and stops in launch journal
+  DO    repeat bounded execution and trajectory check until attempt completes, stops, or blocks
 RECORD:
-  DO    as the main agent, finalize observed effects, measurements, failures, uncertainty and trajectory corrections under result in the launch journal
-  DO    reference available main and subagent harness-generated full transcripts, recording any unavailable transcript
-  DO    keep each launch journal within 256 lines of at most 80 characters, including collapsed details, and reference larger artifacts separately
-  DO    replace [in curs] in the overview with the measured result or interruption while preserving the 256-character entry limit
-  DO    add, adjust or withdraw ideas in <workspace>/whiteboard.md while preserving history in launch journals and harness transcripts
-  DO    repeat the flow for successive sequential launches until the target is met, work is blocked, or the agreed budget or scope is exhausted
+  DO    record effects, measurements, failures and corrections under result in launch journal
+  DO    reference full harness transcripts for main/subagent, noting unavailable ones
+  DO    keep journals within 256 lines of 80 chars including collapsed details, linking larger artifacts
+  DO    update overview: replace [in curs] with result/interruption (max 256 chars)
+  DO    add/adjust/withdraw ideas in <workspace>/whiteboard.md
+  DO    repeat sequential launches until target met, blocked, or budget exhausted
 REVIEW:
-  CHECK the reported outcome is supported by saved observations against <workspace>/target.md
-  CHECK each overview entry follows #<n> with indented hypothesis and result, fits 256 characters and identifies exactly one <n>- directory
-  CHECK each directory description fits 60 characters and its journal fits 256 lines of 80 characters
-  CHECK result records effects and corrections with available evidence and harness transcript references
-  CHECK the main agent supervised one executing subagent at a time
-  CHECK the whiteboard reflects current working ideas and launch history remains accessible
+  CHECK saved measurements support the reported outcome against <workspace>/target.md
+  CHECK overview entries follow #<n>, fit 256 chars, and identify one <n>- directory
+  CHECK directory descriptions fit 60 chars and journals fit 256 lines of 80 chars
+  CHECK result records effects/corrections with evidence/transcript references
+  CHECK main agent supervised one subagent at a time
+  CHECK whiteboard reflects current ideas and history is accessible
 REPLY:
-  SAY   the measured outcome, relevant launch numbers and any concrete blocker
+  SAY   measured outcome, relevant launch numbers, and any concrete blocker
   END
 ```
