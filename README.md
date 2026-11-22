@@ -1,8 +1,13 @@
 # Rocket launcher
 
-A sequential experimental workbench. The main agent reads accumulated
-knowledge and chooses an attempt. One subagent executes it in bounded steps;
-the main agent checks the trajectory and continues, redirects or stops it.
+An experimental workbench with a **coordonator**, a **cercetaș**, and a
+**worker**. The cercetaș researches other teams' experiments while the worker
+executes accepted directions. The coordonator proposes directions on the
+cercetaș's whiteboard, transfers actionable ones to the worker's whiteboard,
+and deletes rejected ones from the cercetaș's whiteboard.
+
+Research lives in `research/`, with the same target, whiteboard, and journal
+structure as experiments. Each article has a numbered folder with its details.
 
 The skill lives in `skills/rocket-launcher/SKILL.md`; its flow uses
 [lnl](https://github.com/dsl400/lnl).
@@ -26,8 +31,16 @@ The skill lives in `skills/rocket-launcher/SKILL.md`; its flow uses
   discoverable by the next agent.
 - **Identity:** the launch number links overview and directory; a description
   of at most 60 characters keeps directory names readable.
-- **Execution:** one executing subagent preserves a sequential chain of
-  attempts while the main agent supervises.
+- **Execution:** one cercetaș and one worker let research feed experiments
+  while each role preserves a sequential history under one coordonator.
+- **Articles:** one folder per article makes source details reusable under
+  the existing journal rules.
+- **Research evidence:** source applicability and search limitations keep
+  rejection arguments and proposed gaps grounded in what was read.
+- **Handoff:** separate whiteboards let the coordonator select work and pass
+  the remaining question with its supporting findings to the worker.
+- **Reuse:** consulting saved findings prevents repeating settled research
+  and experiments without a new question or changed conditions.
 - **Trajectory:** checkpoints expose deviations before the next step;
   recorded corrections explain why an attempt changed direction.
 
