@@ -17,6 +17,8 @@ START:
   ASK   was ownership acquired?
   STOP  report owner and yield IF no
   DO    create missing documents, preserving existing content
+  DO    while execution is active, supervisor checks worker/process liveness and observable progress every 15 minutes, independently of k
+  DO    on suspected stall, inspect logs and process state, then guide or stop the worker/process, recording evidence before any restart
   DO    reconcile numbered directories and overview entries, marking unfinished or orphaned launches [in curs]
 DECIDE:
   ADD   1 to <launches>
