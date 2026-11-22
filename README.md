@@ -33,6 +33,10 @@ The skill lives in `skills/rocket-launcher/SKILL.md`; its flow uses
   of at most 60 characters keeps directory names readable.
 - **Execution:** one cercetaș and one worker let research feed experiments
   while each role preserves a sequential history under one coordonator.
+- **Role context:** separate item state and workspace bindings keep article
+  completion and recovery from stopping experiments or changing their records.
+- **Shutdown:** checking the budget before dispatch and cleaning up owned
+  resources on every exit prevents orphaned subagents and locks.
 - **Articles:** one folder per article makes source details reusable under
   the existing journal rules.
 - **Research evidence:** source applicability and search limitations keep
