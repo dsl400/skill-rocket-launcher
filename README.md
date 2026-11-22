@@ -10,7 +10,8 @@ Research lives in `research/`, with the same target, whiteboard, and journal
 structure as experiments. Each article has a numbered folder with its details.
 
 The user writes directions for the coordonator in `steer.md`; they take effect
-after the affected current step finishes.
+after the affected current step finishes. The coordonator clears the applied
+content to acknowledge the trajectory change.
 
 The skill lives in `skills/rocket-launcher/SKILL.md`; its flow uses
 [lnl](https://github.com/dsl400/lnl).
@@ -49,8 +50,9 @@ The skill lives in `skills/rocket-launcher/SKILL.md`; its flow uses
 - **Reuse:** consulting saved findings prevents repeating settled research
   and experiments without a new question or changed conditions.
 - **User steering:** checking user directions between steps allows trajectory
-  changes without interrupting in-flight work or waiting for k steps. Preserving
-  the file and recording applied directions supports recovery without replay.
+  changes without interrupting in-flight work or waiting for k steps. Clearing
+  applied content confirms the trajectory change; preserving concurrent edits
+  prevents losing new user instructions.
 - **Trajectory:** checkpoints expose deviations before the next step;
   recorded corrections explain why an attempt changed direction.
 

@@ -66,19 +66,23 @@ or changed conditions.
 ## User steering
 
 The user writes free-form directions in `<workspace>/steer.md`. Create it
-empty if missing; preserve user content. The coordonator reads it at startup,
-while waiting, and after each completed step, before dispatching further work,
-regardless of `k`. Missing or empty content adds no direction.
+empty if missing. The coordonator reads it at startup, while waiting, and
+after each completed step, before dispatching further work, regardless of
+`k`. Missing or empty content adds no direction.
 
-Apply changed instructions when the affected role's current step finishes;
+Apply the read instructions when the affected role's current step finishes;
 leave in-flight steps running. An idle role can receive the direction
 immediately. Route research and experiment changes through the existing
 whiteboards and handoff. If the current attempt no longer fits, close it with
 its partial results before selecting another. Record the applied instruction
-and its effect in the existing journal so recovery can distinguish applied
-instructions from pending ones. Keep the direction in force until the user
-changes it; unchanged text does not trigger repeated actions. The coordonator
-leaves `steer.md` for the user to edit.
+and its effect in the existing journal so recovery can identify pending work.
+
+After adjusting the trajectory for all affected roles, empty `steer.md` to
+acknowledge the instruction. Clear only the content that was read and applied:
+if the user has changed the file meanwhile, preserve it and process the new
+content. Use the journal to resume partial application without repeating
+completed actions. Clearing the file acknowledges receipt and application;
+the adjusted trajectory remains in force.
 
 Example `steer.md`:
 
@@ -96,7 +100,7 @@ whether other teams measured this case before scheduling more experiments.
 | Whiteboards carry role assignments. | Everyone follows the shared ideas. | Move the accepted long-input experiment from research/whiteboard.md to whiteboard.md. |
 | Saved work informs the next attempt. | Research the method again. | Reuse article #4; test the input length absent from its results. |
 | Lifecycle actions address the selected role. | Stop the worker after an article. | Close the cercetaș article in research/; the worker continues. |
-| User steering takes effect between steps. | Wait for the next k-step review. | Read steer.md after this step and apply the direction before dispatching another. |
+| User steering takes effect between steps. | Wait for the next k-step review. | Apply steer.md after this step; clear the applied content to acknowledge it. |
 | Owned resources are cleaned up on exit. | Stop when the budget expires. | Stop both roles, save unfinished work, and release the owned lock. |
 
 ## Flow
@@ -121,7 +125,7 @@ START:
 DECIDE:
   ADD   1 to <cycles>
   STOP  run CLEANUP, save and report continuation checkpoint IF <cycles> >= 1000000000
-  DO    read <workspace>/steer.md and reconcile it with applied instructions in journals; apply changes for idle roles and hold changes for active roles until their current step ends
+  DO    read <workspace>/steer.md and reconcile it with applied instructions in journals; apply changes for idle roles and hold changes for active roles until their current step ends; acknowledge fully applied steering by clearing the unchanged read content
   ASK   do saved measurements meet <workspace>/target.md?
   JUMP  REVIEW IF yes
   ASK   is work globally blocked, budget/scope exhausted, or shutdown requested?
@@ -174,7 +178,7 @@ EXECUTE:
 STEP_1:
   DO    reset selected role steps since last trajectory check to zero
 WORK:
-  DO    read <workspace>/steer.md and apply pending user directions for the selected role before dispatch, recording their effect in its existing journal
+  DO    read <workspace>/steer.md and apply pending user directions for the selected role before dispatch, recording their effect in its existing journal; acknowledge fully applied steering by clearing the unchanged read content
   ASK   does the selected attempt need closing because of user steering?
   JUMP  RECORD IF yes
   ADD   1 to <total_steps>
@@ -191,7 +195,7 @@ OBSERVE:
 STEP_2:
   DO    selected role reports effects/proposed next action and waits for coordonator direction
   DO    save observed effects and step completion in the selected context before further dispatch
-  DO    read <workspace>/steer.md and apply pending user directions for this role, recording their effect
+  DO    read <workspace>/steer.md and apply pending user directions for this role, recording their effect; acknowledge fully applied steering by clearing the unchanged read content
   ASK   does the selected attempt need closing because of user steering?
   JUMP  RECORD IF yes
   ASK   have k steps elapsed for this role, or has its attempt completed/encountered a blocker?
@@ -233,7 +237,7 @@ CHECKS:
   CHECK cercetaș decisions cite article evidence and distinguish research gaps from search limitations
   CHECK worker directions were transferred by coordonator with findings and a testable remaining question
   CHECK rejected directions are removed from the cercetaș whiteboard and saved findings inform further work
-  CHECK steer.md content is preserved and changed user directions were applied after the affected current step, before further dispatch, independent of k
+  CHECK steer.md was cleared only after its read instructions adjusted the trajectory for all affected roles between steps, independent of k; concurrent user edits were preserved
   CHECK each lifecycle action used the selected role context and workspace
   CHECK all exits after lock acquisition stopped both roles and released the owned lock after saving records
   CHECK whiteboard reflects current ideas and history is accessible
