@@ -8,10 +8,32 @@ metadata:
 
 # Rocket launcher
 
-One agent runs at a time. Each agent starts with the target, whiteboard and
-complete launch overview, then opens launch details as needed.
+The main agent supervises one executing subagent. Attempts run sequentially.
+Both start with the target, whiteboard and complete launch overview, then
+open launch details as needed.
 Repeat the flow for successive launches until the target is met, work is
 blocked, or the agreed budget or scope is exhausted.
+
+## Trajectory correction
+
+Use a two-step cycle within each attempt:
+
+1. The subagent executes a bounded step and reports the action, observed
+   effects and intended next step to the main agent.
+2. The main agent compares that evidence and next step with `target.md`
+   and the launch hypothesis, then continues, redirects or stops execution.
+
+The main agent defines checkpoints with the subagent before execution and
+inspects available progress between them. The subagent waits for direction
+at each checkpoint. Redirect with the specific deviation and next action;
+interrupt promptly when continuing would deepen the deviation. Confirm the
+worker and its launched processes have stopped before replacing it.
+
+The main agent owns trajectory decisions and journal finalization. The
+subagent executes the assigned attempt and supplies evidence. Keep one
+executing subagent, with no further delegation. Record corrections and
+stops with their effects under `result`; reference the available main and
+subagent harness transcripts in the launch journal.
 
 ## Workspace
 
@@ -81,6 +103,7 @@ artifacts from the journal.
 | Overview | We performed an interesting experiment. | 18/20 exact; two codes lost. |
 | Evidence | It seems successful. | result records 18/20 and the output file. |
 | Whiteboard | This idea must stay because we tried it. | Adjust or withdraw the idea using #1. |
+| Trajectory | Keep working and report at the end. | Report at the checkpoint; principal redirects the next step. |
 | Continuity | Start another run after an interruption. | Inspect the effects of the [in curs] run. |
 
 ## Flow
@@ -91,7 +114,7 @@ START:
   ASK   are the exercise and measurable success criterion defined?
   STOP  ask for the missing target definition IF no
   DO    create missing workspace and workbench documents using the agreed target
-  ASK   is another agent running this workbench?
+  ASK   is another main agent supervising this workbench?
   STOP  report the active owner and leave execution to that agent IF yes
   ASK   does the overview contain an [in curs] launch?
   JUMP  RECOVER IF yes
@@ -105,18 +128,21 @@ DECIDE:
   DO    allocate the next unused launch number above all existing entries and directories
   DO    create workbench/<n>-<description>/jurnal.md with the hypothesis and intended attempt
   DO    append the overview entry with [in curs] before execution
-  DO    execute the attempt as the sole active agent
+  DO    assign the attempt to one subagent with the shared overview, hypothesis and bounded checkpoints
+  DO    supervise execution through the two-step trajectory correction cycle until completion, stop or blocker
   JUMP  RECORD
 RECOVER:
   DO    inspect the interrupted launch journal, harness transcript and surviving effects
-  DO    resume that attempt if justified or record its partial result and interruption
+  DO    establish whether the previous worker or its processes are still active before resuming
+  DO    resume that attempt under the two-step supervision cycle if justified or record its partial result and interruption
 RECORD:
-  DO    write observed effects and evidence references under result in the launch journal
-  DO    reference the full harness session transcript when its location is available, otherwise record that it is unavailable
+  DO    write observed effects, trajectory corrections, stops and evidence references under result in the launch journal
+  DO    reference available main and subagent harness transcripts, recording any unavailable transcript
   DO    replace [in curs] in the overview with the measured result or interruption
   DO    adjust workspace/whiteboard.md as warranted, including withdrawing unsupported ideas
   JUMP  REVIEW
 REVIEW:
+  CHECK trajectory corrections and stops are recorded with their observed effects
   CHECK the reported outcome is supported by saved observations against workspace/target.md
   CHECK each overview entry fits 256 characters and resolves to one launch directory
   CHECK each launch journal fits 256 lines of 80 characters and references available evidence

@@ -1,7 +1,8 @@
 # Rocket launcher
 
-A sequential experimental workbench. One agent reads the accumulated
-knowledge, chooses an attempt, executes it and records its effects.
+A sequential experimental workbench. The main agent reads accumulated
+knowledge and chooses an attempt. One subagent executes it in bounded steps;
+the main agent checks the trajectory and continues, redirects or stops it.
 
 The skill lives in `skills/rocket-launcher/SKILL.md`; its flow uses
 [lnl](https://github.com/dsl400/lnl).
@@ -18,7 +19,10 @@ The skill lives in `skills/rocket-launcher/SKILL.md`; its flow uses
   discoverable by the next agent.
 - **Identity:** the launch number links overview and directory; a description
   of at most 60 characters keeps directory names readable.
-- **Execution:** one active agent preserves a sequential chain of attempts.
+- **Execution:** one executing subagent preserves a sequential chain of
+  attempts while the main agent supervises.
+- **Trajectory:** checkpoints expose deviations before the next step;
+  recorded corrections explain why an attempt changed direction.
 
 ## Install
 
