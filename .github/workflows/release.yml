@@ -1,0 +1,36 @@
+# Publishes the rocket-launcher skill as a GitHub release asset when a v* tag is pushed.
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Write the version of the tag into the skill
+        run: |
+          sed -i "0,/^  version: .*/s//  version: ${GITHUB_REF_NAME#v}/" skills/rocket-launcher/SKILL.md
+          grep -q "^  version: ${GITHUB_REF_NAME#v}$" skills/rocket-launcher/SKILL.md
+      - name: Lint the flow with the latest lnl release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download --repo dsl400/lnl --pattern lnl.mjs
+          node lnl.mjs lint skills/rocket-launcher/SKILL.md
+      - name: Pack the skill
+        run: |
+          mkdir -p pack/rocket-launcher && cp -r skills/rocket-launcher/. pack/rocket-launcher/
+          tar -czf rocket-launcher.tar.gz -C pack rocket-launcher
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" rocket-launcher.tar.gz skills/rocket-launcher/SKILL.md --title "$GITHUB_REF_NAME" --generate-notes
