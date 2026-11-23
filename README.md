@@ -18,9 +18,12 @@ and a fresh worker executes each experiment. The skill lives in
   ownership keeps recovery and cleanup accountable across automation handoff.
 - **Execution:** deterministic utilities and event-based waiting avoid repeated
   agent work for scaffolding, verification, summaries, and idle monitoring.
+- **Long runs:** mandatory handoff leaves no agent waiting. A terminal hook
+  starts a fresh coordonator once; atomic wake ownership prevents duplicates.
+  Persisted status and hook errors allow manual recovery without polling.
 - **Limits:** 60-character descriptions keep paths readable; 256-character
   overviews keep history affordable; 256-line journals of 80 characters link
-  larger evidence. The billion-iteration guards provide continuation points.
+  larger evidence. The billion-decision guard provides a continuation point.
 
 ## Install
 

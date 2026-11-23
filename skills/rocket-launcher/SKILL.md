@@ -13,7 +13,7 @@ START:
   DO    read target.md, whiteboard.md, and complete jurnal.md in <workspace> and research/ where present
   ASK   are the target and measurable success criterion defined?
   STOP  ask for the missing definition IF no
-  DO    acquire <workspace>/.launcher-lock atomically, reclaiming only verified inactive ownership
+  DO    acquire <workspace>/.launcher-lock atomically, accepting automation transfer only after the recorded runner is terminal and reclaiming only verified inactive ownership
   ASK   was ownership acquired?
   STOP  report the active owner IF no
   DO    create missing documents and steer.md, preserving existing content
@@ -25,6 +25,8 @@ START:
   DO    append #<n>, indented hypothesis, and indented [in curs] to its overview, max 256 chars
   DO    keep item journals within 256 lines of 80 chars, linking larger artifacts and available transcripts
   DO    reconcile unfinished items from journals, effects, and process ownership before redispatch
+  ASK   is a recorded experiment terminal with its result still unprocessed?
+  JUMP  RESULT IF yes
   ASK   is an owned experiment still running?
   JUMP  ACTIVE IF yes
 DECIDE:
@@ -56,19 +58,22 @@ DECIDE:
 FULL:
   DO    record the milestone name, reason, and supporting development evidence before authorizing the full suite
 FREEZE:
-  DO    freeze the test tier, exact cases, rubric, code, dependencies, model, configuration, and inputs before execution
-  DO    verify frozen inputs and start the deterministic runner under recorded ownership
+  DO    configure experiment.json on_finish_argv before freezing, with a terminal hook gated by HANDOFF ownership
+  DO    make the hook start one fresh coordonator at RESULT using the recorded experiment and status.json, on success or error
+  DO    guard wake dispatch atomically with the experiment's wake.lock and persist terminal status before dispatch
+  DO    make the terminal handler deliver one wake when both handoff readiness and terminal status are durable, including completion during handoff
+  DO    record hook failure as failed with its reason, preserving run outputs for manual recovery without retries or polling
+  DO    freeze the test tier, exact cases, rubric, code, dependencies, model, configuration, inputs, and hook before execution
+  DO    verify frozen inputs
 ACTIVE:
-  ADD   1 to <events>
-  STOP  save a continuation checkpoint and clean up owned work IF <events> >= 1000000000
-  ASK   is an authorized completion/error automation handoff confirmed?
-  JUMP  HANDOFF IF yes
-  DO    await a completion, error, or explicit user request using one supported blocking waiter per run or attached notifications, without periodic polling
-  DO    keep waiter output to five final status lines, allow initial status creation, and treat a wait timeout only as an ended wait
+  ASK   is the run already terminal?
+  JUMP  RESULT IF yes
+  ASK   can the run finish within one supported waiter call that has not yet been used?
+  JUMP  HANDOFF IF no
+  DO    start the runner if needed and use one blocking waiter, with initial-status grace and five final status lines
   ASK   is the run terminal?
   JUMP  RESULT IF yes
-  DO    handle an explicit request through the recorded owner, leaving the frozen run unchanged by steer.md
-  JUMP  ACTIVE
+  JUMP  HANDOFF
 RESULT:
   DO    verify output integrity, completion, and expected rollback before accepting results
   DO    save raw outputs and generated measurements with their test tier, then write only the interpretation
@@ -79,9 +84,13 @@ RESEARCH_WAIT:
   DO    await cercetaș findings or an error without polling
   JUMP  DECIDE
 HANDOFF:
-  DO    verify automation ownership of the run, lock, terminal status, and cleanup before detaching
-  DO    stop cercetaș and save its unfinished work before detaching
-  DO    record the owner and status path
+  DO    verify durable automation can own the run, lock, terminal hook, status path, and cleanup
+  ASK   is this handoff supported and configured?
+  STOP  report the missing handoff capability IF no
+  DO    stop worker and cercetaș agents and save their unfinished work, preserving the runner under automation ownership
+  DO    journal the experiment, automation owner, hook, status path, and RESULT entrypoint before relinquishing coordinator ownership
+  DO    transfer the lock to automation and arm the wake as one ownership handoff, then start the detached runner if needed
+  DO    leave no agent waiting and retain automation ownership until the terminal runner transfers to the fresh coordonator
   JUMP  CHECKS
 REVIEW:
   ASK   does this invocation own the lock?
@@ -96,6 +105,7 @@ CHECKS:
   CHECK the test tier answers the question and full runs have milestone evidence
   CHECK steer.md was acknowledged by adjusting the trajectory and clearing applied content
   CHECK results have verified evidence or an explicit automation owner and status path
+  CHECK long runs use HANDOFF with no waiting agents, one terminal wake, and manual recovery after hook failure
 REPLY:
   SAY   measured outcome or handoff status, relevant item numbers, and concrete blockers
   END
