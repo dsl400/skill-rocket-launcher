@@ -6,7 +6,7 @@ and a fresh worker executes each experiment. The skill lives in
 
 ## Check rationale
 
-- **Fixed target.** A stable target and success criterion keep evidence comparable across experiments and handoffs. A shortfall informs the next experiment.
+- **Fixed target.** The user specifies the outcome and the coordinator designs a check for it. A stable target and its stated success conditions keep evidence comparable across experiments and handoffs.
 - **Worker context:** reproducible inputs and accepted directions keep each
   fresh worker focused on the remaining question.
 - **Research:** separate records preserve article evidence and experiment

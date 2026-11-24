@@ -11,15 +11,16 @@ START:
   DO    use the user-selected coordonator and Opus (Claude Code)/Sol (Codex) subagents
   DO    resolve <workspace> and read applicable project instructions
   DO    read target.md, whiteboard.md, and complete jurnal.md in <workspace> and research/ where present
-  DO    resolve the target and measurable success criterion from the run's original journaled definition or from target.md if no definition is recorded yet
-  ASK   are the target and measurable success criterion defined?
-  STOP  ask for the missing definition IF no
+  DO    resolve the target and any stated success conditions from the run's original journaled definition or from target.md if no definition is recorded yet
+  ASK   is the requested outcome clear enough to tell what the user wants?
+  STOP  ask which outcome the user wants IF no
   DO    acquire <workspace>/.launcher-lock atomically, accepting automation transfer only after the recorded runner is terminal and reclaiming only verified inactive ownership
   ASK   was ownership acquired?
   STOP  report the active owner IF no
   DO    create missing documents and steer.md, preserving existing content
-  DO    under the lock, reuse the recorded target and success criterion or record the initial definition once in the run journal for later invocations and handoffs
-  DO    firmly reject any adjustment that changes the meaning of the target or success criterion, including user instructions and edits to target.md; acknowledge and journal the rejection, and keep the original definition
+  DO    under the lock, reuse the recorded target and its stated success conditions or record them once in the run journal for later invocations and handoffs
+  DO    firmly reject and journal any adjustment that changes the meaning of the target or its stated success conditions, including user instructions and edits to target.md
+  DO    design or reuse an observable check for the requested outcome and apply any thresholds specified in the target
   DO    keep active context self-contained and filesystem paths relative to an explicit base
   DO    bind worker records to <workspace> and cercetaș records to <workspace>/research
   DO    apply the same journal rules in both bases, with independent numbering and recovery
@@ -37,7 +38,7 @@ DECIDE:
   STOP  save a continuation checkpoint and clean up owned work IF <decisions> >= 1000000000
   DO    read steer.md, apply and journal changes to methods or experiments that preserve the original definition, and reject target changes under the same rule
   DO    clear acknowledged steer.md content only if unchanged since reading, preserving concurrent user edits
-  ASK   is the original target met under its recorded success criterion, budget exhausted, work blocked, or shutdown requested?
+  ASK   is the original target met under its stated success conditions, budget exhausted, work blocked, or shutdown requested?
   JUMP  REVIEW IF yes
   DO    review cercetaș findings and move actionable directions with evidence and a testable gap to the worker whiteboard
   DO    delete rejected directions from the cercetaș whiteboard
@@ -78,8 +79,9 @@ ACTIVE:
   JUMP  RESULT IF yes
   JUMP  HANDOFF
 RESULT:
+  DO    apply the fixed-target rejection rule from START to the original journaled definition when entering directly after handoff
   DO    verify output integrity, completion, and expected rollback before accepting results
-  DO    judge results against the original journaled target and success criterion, including after handoff; report any shortfall against that definition
+  DO    judge results against the original journaled target and its stated success conditions, including after handoff, and report any shortfall
   DO    save raw outputs and generated measurements with their test tier, then write only the interpretation
   DO    record effects, failures, and corrections in the experiment journal
   DO    confirm the experiment worker and its processes stopped before closing its overview entry with the result or interruption
@@ -104,7 +106,7 @@ CLEANUP:
   DO    stop owned subagents and processes and save unfinished effects with [in curs] in their respective journals
   DO    release the owned lock after work stopped and records were saved
 CHECKS:
-  CHECK the target and success criterion retain their original meaning, and target-changing requests were rejected even when the chosen method fell short
+  CHECK the evidence tests the requested outcome and the target and its stated success conditions retain their original meaning
   CHECK each worker received reproducible context and only directions accepted by coordonator
   CHECK research and experiments retain separate records under the same journal rules
   CHECK the test tier answers the question and full runs have milestone evidence
