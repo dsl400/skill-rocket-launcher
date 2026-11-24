@@ -11,12 +11,15 @@ START:
   DO    use the user-selected coordonator and Opus (Claude Code)/Sol (Codex) subagents
   DO    resolve <workspace> and read applicable project instructions
   DO    read target.md, whiteboard.md, and complete jurnal.md in <workspace> and research/ where present
+  DO    resolve the target and measurable success criterion from the run's original journaled definition or from target.md if no definition is recorded yet
   ASK   are the target and measurable success criterion defined?
   STOP  ask for the missing definition IF no
   DO    acquire <workspace>/.launcher-lock atomically, accepting automation transfer only after the recorded runner is terminal and reclaiming only verified inactive ownership
   ASK   was ownership acquired?
   STOP  report the active owner IF no
   DO    create missing documents and steer.md, preserving existing content
+  DO    under the lock, reuse the recorded target and success criterion or record the initial definition once in the run journal for later invocations and handoffs
+  DO    firmly reject any adjustment that changes the meaning of the target or success criterion, including user instructions and edits to target.md; acknowledge and journal the rejection, and keep the original definition
   DO    keep active context self-contained and filesystem paths relative to an explicit base
   DO    bind worker records to <workspace> and cercetaș records to <workspace>/research
   DO    apply the same journal rules in both bases, with independent numbering and recovery
@@ -32,9 +35,9 @@ START:
 DECIDE:
   ADD   1 to <decisions>
   STOP  save a continuation checkpoint and clean up owned work IF <decisions> >= 1000000000
-  DO    read steer.md and adjust the trajectory at this checkpoint, recording the applied direction in the existing journal
-  DO    clear applied steer.md content only if unchanged since reading, preserving concurrent user edits
-  ASK   is the target met, budget exhausted, work blocked, or shutdown requested?
+  DO    read steer.md, apply and journal changes to methods or experiments that preserve the original definition, and reject target changes under the same rule
+  DO    clear acknowledged steer.md content only if unchanged since reading, preserving concurrent user edits
+  ASK   is the original target met under its recorded success criterion, budget exhausted, work blocked, or shutdown requested?
   JUMP  REVIEW IF yes
   DO    review cercetaș findings and move actionable directions with evidence and a testable gap to the worker whiteboard
   DO    delete rejected directions from the cercetaș whiteboard
@@ -76,6 +79,7 @@ ACTIVE:
   JUMP  HANDOFF
 RESULT:
   DO    verify output integrity, completion, and expected rollback before accepting results
+  DO    judge results against the original journaled target and success criterion, including after handoff; report any shortfall against that definition
   DO    save raw outputs and generated measurements with their test tier, then write only the interpretation
   DO    record effects, failures, and corrections in the experiment journal
   DO    confirm the experiment worker and its processes stopped before closing its overview entry with the result or interruption
@@ -100,13 +104,18 @@ CLEANUP:
   DO    stop owned subagents and processes and save unfinished effects with [in curs] in their respective journals
   DO    release the owned lock after work stopped and records were saved
 CHECKS:
+  CHECK the target and success criterion retain their original meaning, and target-changing requests were rejected even when the chosen method fell short
   CHECK each worker received reproducible context and only directions accepted by coordonator
   CHECK research and experiments retain separate records under the same journal rules
   CHECK the test tier answers the question and full runs have milestone evidence
-  CHECK steer.md was acknowledged by adjusting the trajectory and clearing applied content
+  CHECK steer.md was acknowledged and processed content was cleared without discarding concurrent edits
   CHECK results have verified evidence or an explicit automation owner and status path
   CHECK long runs use HANDOFF with no waiting agents, one terminal wake, and manual recovery after hook failure
 REPLY:
   SAY   measured outcome or handoff status, relevant item numbers, and concrete blockers
   END
 ```
+
+| Filler | Direct |
+|---|---|
+| Raise the p95 limit to 150 ms because this method reaches 150 ms. | Keep the 100 ms p95 limit. Record the measured 150 ms and try another method. |

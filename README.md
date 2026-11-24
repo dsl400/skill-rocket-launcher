@@ -6,6 +6,7 @@ and a fresh worker executes each experiment. The skill lives in
 
 ## Check rationale
 
+- **Fixed target.** A stable target and success criterion keep evidence comparable across experiments and handoffs. A shortfall informs the next experiment.
 - **Worker context:** reproducible inputs and accepted directions keep each
   fresh worker focused on the remaining question.
 - **Research:** separate records preserve article evidence and experiment
@@ -13,7 +14,7 @@ and a fresh worker executes each experiment. The skill lives in
 - **Test scope:** unit, smoke, and development checks answer routine questions;
   full runs require milestone evidence to justify their cost.
 - **Steering:** changing trajectory between experiments preserves the active
-  frozen run. Clearing applied content acknowledges the user's direction.
+  frozen run. Clearing acknowledged content consumes each direction once.
 - **Results and ownership:** verified measurements support decisions; recorded
   ownership keeps recovery and cleanup accountable across automation handoff.
 - **Execution:** deterministic utilities and event-based waiting avoid repeated
