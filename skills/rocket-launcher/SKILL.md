@@ -115,7 +115,3 @@ REPLY:
   SAY   measured outcome or handoff status, relevant item numbers, and concrete blockers
   END
 ```
-
-| Filler | Direct |
-|---|---|
-| Raise the p95 limit to 150 ms because this method reaches 150 ms. | Keep the 100 ms p95 limit. Record the measured 150 ms and try another method. |
