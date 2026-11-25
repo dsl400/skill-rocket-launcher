@@ -11,6 +11,8 @@ and a fresh worker executes each experiment. The skill lives in
   fresh worker focused on the remaining question.
 - **Research:** separate records preserve article evidence and experiment
   results while sharing the established journal format.
+- **Overview result.** The item number identifies the detailed journal. The
+  result line carries the outcome.
 - **Test scope:** unit, smoke, and development checks answer routine questions;
   full runs require milestone evidence to justify their cost.
 - **Steering:** changing trajectory between experiments preserves the active

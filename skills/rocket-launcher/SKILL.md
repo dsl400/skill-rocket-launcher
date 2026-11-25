@@ -27,6 +27,7 @@ START:
   DO    for each item allocate <n>-<description>/jurnal.md above existing numbers, description max 60 chars
   DO    journal hypothesis, attempt, configuration, command, and evidence before dispatch
   DO    append #<n>, indented hypothesis, and indented [in curs] to its overview, max 256 chars
+  DO    when closing an entry in either overview journal, replace [in curs] with only the indented result or interruption text, without status tags, filenames, or paths
   DO    keep item journals within 256 lines of 80 chars, linking larger artifacts and available transcripts
   DO    reconcile unfinished items from journals, effects, and process ownership before redispatch
   ASK   is a recorded experiment terminal with its result still unprocessed?
@@ -109,6 +110,7 @@ CHECKS:
   CHECK the evidence tests the requested outcome and the target and its stated success conditions retain their original meaning
   CHECK each worker received reproducible context and only directions accepted by coordonator
   CHECK research and experiments retain separate records under the same journal rules
+  CHECK each closed overview entry ends with plain result or interruption text and has no status tag, filename, or path on that line
   CHECK the test tier answers the question and full runs have milestone evidence
   CHECK steer.md was acknowledged and processed content was cleared without discarding concurrent edits
   CHECK results have verified evidence or an explicit automation owner and status path
