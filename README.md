@@ -7,10 +7,15 @@ and a fresh worker executes each experiment. The skill lives in
 ## Check rationale
 
 - **Fixed target.** The user specifies the outcome and the coordinator designs a check for it. A stable target and its stated success conditions keep evidence comparable across experiments and handoffs.
-- **Worker context:** reproducible inputs and accepted directions keep each
+- **Whiteboard.** One checklist keeps decisions and progress visible across
+  handoffs. Links keep supporting details beside the decision they explain.
+- **Approval and completion.** Joint approval gives the coordinator and user
+  a say in which directions advance. Completion marks show which work has
+  verified results.
+- **Worker context.** Reproducible inputs and approved directions keep each
   fresh worker focused on the remaining question.
-- **Research:** separate records preserve article evidence and experiment
-  results while sharing the established journal format.
+- **Research and experiment journals.** Independent numbering lets each role
+  close its entries without changing the other's record.
 - **Overview result.** The item number identifies the detailed journal. The
   result line carries the outcome.
 - **Test scope:** unit, smoke, and development checks answer routine questions;

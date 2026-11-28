@@ -6,11 +6,58 @@ metadata:
   source: https://github.com/dsl400/skill-rocket-launcher
   version: 0.1.0
 ---
+
+## Whiteboard
+
+Use `<workspace>/whiteboard.md` for all phases. Give each item a title that
+stands on its own. Link to a matching heading under `Explanations` or a Markdown
+file beside the whiteboard when the title needs supporting detail. Resolve file
+links relative to `whiteboard.md`.
+
+In `Research` and `Plan`, `[x]` records approval from both the coordinator and
+the user for that item. Record their approvals in the journal. Review each item
+independently of its parent and children. In `Develop` and `Test`, `[x]` records
+completion. Each entry there follows a jointly approved `Plan` item.
+
+| Filler | Direct |
+|---|---|
+| A whiteboard in each role's folder | One `whiteboard.md` with phase headings |
+| `Review this` | `Compare the baseline on the fixed development subset` |
+| `[x] Try the candidate` after coordinator approval alone | `[ ] Try the candidate` until the user also approves |
+| `[x] Verify cancellation` when the test starts | `[ ] Verify cancellation` until the result is verified |
+
+```markdown
+## Research
+
+- [ ] Topic that needs approval
+  - [x] Approved subtopic with a self-explanatory title
+  - [x] [Decide the confirmation text](#decide-the-confirmation-text)
+- [ ] [Topic with explanations in a file next to the plan](path.md)
+
+## Plan
+
+- [ ] Define the confirmation behavior
+
+## Develop
+
+- [ ] Implement the confirmation prompt
+
+## Test
+
+- [ ] Verify that cancelling preserves the current state
+
+## Explanations
+
+### Decide the confirmation text
+
+Use “Overwrite the existing file?”
+```
+
 ```lnl
 START:
   DO    use the user-selected coordonator and Opus (Claude Code)/Sol (Codex) subagents
   DO    resolve <workspace> and read applicable project instructions
-  DO    read target.md, whiteboard.md, and complete jurnal.md in <workspace> and research/ where present
+  DO    read target.md and whiteboard.md in <workspace> and complete jurnal.md in <workspace> and research/ where present
   DO    resolve the target and any stated success conditions from the run's original journaled definition or from target.md if no definition is recorded yet
   ASK   is the requested outcome clear enough to tell what the user wants?
   STOP  ask which outcome the user wants IF no
@@ -18,6 +65,10 @@ START:
   ASK   was ownership acquired?
   STOP  report the active owner IF no
   DO    create missing documents and steer.md, preserving existing content
+  DO    initialize or resume the Whiteboard format under the lock
+  DO    merge legacy research/whiteboard.md entries into Research and unsectioned workspace whiteboard entries into Plan under the lock
+  DO    preserve nesting, recorded decisions, and details, update moved links, then retire the legacy file after verifying the merge
+  DO    carry forward approval marks only where both approvals are recorded
   DO    under the lock, reuse the recorded target and its stated success conditions or record them once in the run journal for later invocations and handoffs
   DO    firmly reject and journal any adjustment that changes the meaning of the target or its stated success conditions, including user instructions and edits to target.md
   DO    design or reuse an observable check for the requested outcome and apply any thresholds specified in the target
@@ -41,17 +92,19 @@ DECIDE:
   DO    clear acknowledged steer.md content only if unchanged since reading, preserving concurrent user edits
   ASK   is the original target met under its stated success conditions, budget exhausted, work blocked, or shutdown requested?
   JUMP  REVIEW IF yes
-  DO    review cercetaș findings and move actionable directions with evidence and a testable gap to the worker whiteboard
-  DO    delete rejected directions from the cercetaș whiteboard
-  DO    propose directions on the cercetaș whiteboard using completed experiments and saved findings
-  DO    start or resume one cercetaș in parallel with worker execution, with no further delegation
+  DO    have the coordinator maintain the whiteboard and collect findings and progress from the cercetaș and worker
+  DO    track research questions in Research and use findings with evidence and a testable gap to propose directions in Plan
+  DO    remove rejected directions from the checklist after journaling the decision
+  DO    request user approval for coordinator-approved Research and Plan items awaiting it and mark each item approved once both approvals are recorded
+  DO    start or resume one cercetaș on unresolved approved Research items in parallel with worker execution, with no further delegation
   DO    have cercetaș search online for other teams' experiments and annotate directions with rejection arguments or research gaps
   DO    have cercetaș journal each article in its own numbered folder with URL, date, findings, limitations, and applicability, reusing the folder on revisit
   DO    have cercetaș close its own items and overview entries with results, leaving worker processes and records intact
-  ASK   is an actionable direction available on the worker whiteboard?
-  JUMP  RESEARCH_WAIT IF no
+  ASK   is an actionable Plan item approved by both the coordinator and the user?
+  JUMP  NO_PLAN IF no
   DO    select an experiment answering an unresolved question or changed conditions, reusing saved research
   DO    allocate the experiment using the journal rules
+  DO    add or resume its Develop and Test checklist entries from the approved Plan item
   DO    dispatch one fresh worker with project instructions, hypothesis, relevant evidence, and reproduction context, without further delegation
   DO    use project generators and shared utilities for experiment scaffolding, freeze, verify, execution, and result summaries
   DO    package inputs, ordered steps, dependencies, configuration, rubric, and reproduction command inside the workspace
@@ -70,6 +123,7 @@ FREEZE:
   DO    record hook failure as failed with its reason, preserving run outputs for manual recovery without retries or polling
   DO    freeze the test tier, exact cases, rubric, code, dependencies, model, configuration, inputs, and hook before execution
   DO    verify frozen inputs
+  DO    mark the Develop work complete once its changes and frozen inputs are verified
 ACTIVE:
   ASK   is the run already terminal?
   JUMP  RESULT IF yes
@@ -81,12 +135,17 @@ ACTIVE:
   JUMP  HANDOFF
 RESULT:
   DO    apply the fixed-target rejection rule from START to the original journaled definition when entering directly after handoff
+  DO    resume the experiment's checklist entries in the same workspace whiteboard
   DO    verify output integrity, completion, and expected rollback before accepting results
   DO    judge results against the original journaled target and its stated success conditions, including after handoff, and report any shortfall
   DO    save raw outputs and generated measurements with their test tier, then write only the interpretation
   DO    record effects, failures, and corrections in the experiment journal
+  DO    mark Test complete when a completed test has a verified recorded result, and link to the outcome when the checklist title needs detail
   DO    confirm the experiment worker and its processes stopped before closing its overview entry with the result or interruption
   JUMP  DECIDE
+NO_PLAN:
+  ASK   is the cercetaș running?
+  JUMP  REVIEW IF no
 RESEARCH_WAIT:
   DO    await cercetaș findings or an error without polling
   JUMP  DECIDE
@@ -108,6 +167,8 @@ CLEANUP:
   DO    release the owned lock after work stopped and records were saved
 CHECKS:
   CHECK the evidence tests the requested outcome and the target and its stated success conditions retain their original meaning
+  CHECK one workspace whiteboard holds Research, Plan, Develop, Test, and Explanations in order, with nested checkboxes and working detail links
+  CHECK checked Research and Plan items have both approvals, and checked Develop and Test items have verified completion
   CHECK each worker received reproducible context and only directions accepted by coordonator
   CHECK research and experiments retain separate records under the same journal rules
   CHECK each closed overview entry ends with plain result or interruption text and has no status tag, filename, or path on that line
@@ -116,6 +177,6 @@ CHECKS:
   CHECK results have verified evidence or an explicit automation owner and status path
   CHECK long runs use HANDOFF with no waiting agents, one terminal wake, and manual recovery after hook failure
 REPLY:
-  SAY   measured outcome or handoff status, relevant item numbers, and concrete blockers
+  SAY   measured outcome or handoff status, relevant item numbers, and concrete blockers including items awaiting user approval
   END
 ```
